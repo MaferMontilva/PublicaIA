@@ -20,9 +20,10 @@ export interface SavedProduct extends AiGeneratedContent {
   detalles: string;
   imagenUrl: string;
   fechaCreacion: string;
+  estado: boolean;
 }
 
-export interface NewSavedProduct {
+export interface NewSavedProduct extends AiGeneratedContent {
   idUsuario: string;
   nombre: string;
   categoria: string;
@@ -30,8 +31,4 @@ export interface NewSavedProduct {
   publicoObjetivo: string;
   detalles: string;
   imagenUrl: string;
-  descripcion: string;
-  mensajeRedes: string;
-  hashtags: string[];
-  consejoVenta: string;
 }

@@ -1,4 +1,5 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { FirebaseError } from "firebase/app";
 import { useState } from "react";
 import {
   Image,
@@ -6,21 +7,93 @@ import {
   Platform,
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+
+import { AppButton } from "../components/common/AppButton";
+import { AppInput } from "../components/common/AppInput";
+import { ErrorMessage } from "../components/common/ErrorMessage";
+import { LoadingMessage } from "../components/common/LoadingMessage";
+import { useAuth } from "../context/AuthContext";
 import { AuthStackParamList } from "../navigation/typesNavigation";
 import { appStyles } from "../styles/appStyles";
+import { AuthFormData } from "../types/user";
+import { validateLoginForm } from "../utils/validations";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
 
-export const LoginScreen = ({ navigation }: Props) => {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
+const getLoginErrorMessage = (error: unknown): string => {
+  if (error instanceof FirebaseError) {
+    if (error.code === "auth/user-not-found") {
+      return "El correo ingresado no está registrado.";
+    }
 
-  const handleLogin = () => {
-    console.log("Iniciar sesión", email, password);
+    if (error.code === "auth/wrong-password") {
+      return "La contraseña ingresada es incorrecta.";
+    }
+
+    if (error.code === "auth/invalid-credential") {
+      return "El correo no está registrado o la contraseña es incorrecta.";
+    }
+
+    if (error.code === "auth/invalid-email") {
+      return "El correo electrónico no tiene un formato válido.";
+    }
+
+    if (error.code === "auth/too-many-requests") {
+      return "Se realizaron demasiados intentos. Espera unos minutos e inténtalo de nuevo.";
+    }
+
+    if (error.code === "auth/network-request-failed") {
+      return "No hay conexión con Firebase. Revisa tu internet e inténtalo nuevamente.";
+    }
+  }
+
+  return "No se pudo iniciar sesión. Inténtalo nuevamente.";
+};
+
+export const LoginScreen = ({ navigation }: Props) => {
+  const { login, isLoading } = useAuth();
+
+  const [formData, setFormData] = useState<AuthFormData>({
+    email: "",
+    password: "",
+  });
+
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
+  const handleChange = (field: keyof AuthFormData, value: string): void => {
+    setFormData((prevData) => ({
+      ...prevData,
+      [field]: value,
+    }));
+
+    if (errorMessage) {
+      setErrorMessage("");
+    }
+  };
+
+  const handleLogin = async (): Promise<void> => {
+    const loginData: AuthFormData = {
+      email: formData.email.trim(),
+      password: formData.password,
+    };
+
+    const validation = validateLoginForm(loginData);
+
+    if (!validation.isValid) {
+      setErrorMessage(validation.message);
+      return;
+    }
+
+    setErrorMessage("");
+
+    try {
+      await login(loginData);
+    } catch (error) {
+      setErrorMessage(getLoginErrorMessage(error));
+    }
   };
 
   return (
@@ -31,6 +104,7 @@ export const LoginScreen = ({ navigation }: Props) => {
       <ScrollView
         contentContainerStyle={appStyles.authScrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         <View style={appStyles.authHeader}>
           <View style={appStyles.authLogoWrapper}>
@@ -39,40 +113,39 @@ export const LoginScreen = ({ navigation }: Props) => {
               style={appStyles.authLogo}
             />
           </View>
-          <Text style={appStyles.authSubtitle}>
-            
-          </Text>
-      
-    
         </View>
 
         <View style={appStyles.authCard}>
-          <Text style={appStyles.authCardTitle}>Inicia sesión</Text>
+          <Text style={appStyles.authCardTitle}>Bienvenida</Text>
 
-          <Text style={appStyles.authLabel}>Correo electrónico</Text>
-          <TextInput
-            style={appStyles.authInput}
+          <Text style={appStyles.authCardText}>
+            Inicia sesión para crear, guardar y consultar tus publicaciones.
+          </Text>
+
+          <ErrorMessage message={errorMessage} />
+
+          <AppInput
+            label="Correo electrónico"
+            value={formData.email}
+            onChangeText={(text) => handleChange("email", text)}
             placeholder="ejemplo@correo.com"
-            placeholderTextColor="#9B9283"
-            value={email}
-            onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
           />
 
-          <Text style={appStyles.authLabel}>Contraseña</Text>
-          <TextInput
-            style={appStyles.authInput}
+          <AppInput
+            label="Contraseña"
+            value={formData.password}
+            onChangeText={(text) => handleChange("password", text)}
             placeholder="Ingresa tu contraseña"
-            placeholderTextColor="#9B9283"
-            value={password}
-            onChangeText={setPassword}
             secureTextEntry
           />
 
-          <TouchableOpacity style={appStyles.authButton} onPress={handleLogin}>
-            <Text style={appStyles.authButtonText}>Iniciar sesión</Text>
-          </TouchableOpacity>
+          {isLoading ? (
+            <LoadingMessage message="Iniciando sesión..." />
+          ) : (
+            <AppButton title="Iniciar sesión" onPress={handleLogin} />
+          )}
 
           <TouchableOpacity
             style={appStyles.authLinkButton}

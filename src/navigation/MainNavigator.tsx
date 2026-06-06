@@ -1,9 +1,15 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+
+import { AiResultScreen } from "../screens/AiResultScreen";
 import { CameraScreen } from "../screens/CameraScreen";
+import { HistoryScreen } from "../screens/HistoryScreen";
 import { HomeScreen } from "../screens/HomeScreen";
+import { ProductDetailScreen } from "../screens/ProductDetailScreen";
+import { ProductFormScreen } from "../screens/ProductFormScreen";
+import { ProfileScreen } from "../screens/ProfileScreen";
 import { colors } from "../styles/appStyles";
 import { MainStackParamList } from "./typesNavigation";
-import { ProductFormScreen } from "../screens/ProductFormScreen";
+
 const Stack = createNativeStackNavigator<MainStackParamList>();
 
 export const MainNavigator = () => {
@@ -11,34 +17,25 @@ export const MainNavigator = () => {
     <Stack.Navigator
       initialRouteName="Home"
       screenOptions={{
-        headerStyle: {
-          backgroundColor: colors.card,
-        },
-        headerTintColor: colors.primary,
-        headerTitleStyle: {
-          fontWeight: "bold",
-        },
+        headerShown: false,
         contentStyle: {
           backgroundColor: colors.background,
         },
       }}
     >
-      <Stack.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ headerShown: false }}
-      />
+      <Stack.Screen name="Home" component={HomeScreen} />
 
-      <Stack.Screen
-        name="Camera"
-        component={CameraScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="ProductForm"
-        component={ProductFormScreen}
-        options={{ title: "Datos del producto" }}
-      />
+      <Stack.Screen name="Camera" component={CameraScreen} />
+
+      <Stack.Screen name="ProductForm" component={ProductFormScreen} />
+
+      <Stack.Screen name="AiResult" component={AiResultScreen} />
+
+      <Stack.Screen name="History" component={HistoryScreen} />
+
+      <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+
+      <Stack.Screen name="Profile" component={ProfileScreen} />
     </Stack.Navigator>
   );
 };

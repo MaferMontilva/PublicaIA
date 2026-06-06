@@ -35,7 +35,9 @@ export const AppButton = ({
       onPress={onPress}
       disabled={disabled}
     >
-      <Text style={textStyle}>{title}</Text>
+      <Text style={[textStyle, disabled ? appStyles.disabledButtonText : null]}>
+        {title}
+      </Text>
     </TouchableOpacity>
   );
 };

@@ -20,6 +20,7 @@ export type MainStackParamList = {
   History: undefined;
   ProductDetail: {
     product: SavedProduct;
+    editMode?: boolean;
   };
   Profile: undefined;
 };

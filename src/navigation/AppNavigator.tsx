@@ -1,18 +1,40 @@
 import { NavigationContainer } from "@react-navigation/native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+
+import { AuthProvider, useAuth } from "../context/AuthContext";
 import { SplashScreen } from "../screens/SplashScreen";
+import { AuthNavigator } from "./AuthNavigator";
 import { MainNavigator } from "./MainNavigator";
 
-export const AppNavigator = () => {
-  const [showSplash, setShowSplash] = useState<boolean>(true);
+const SPLASH_DURATION = 7000;
 
-  if (showSplash) {
-    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+const AppNavigationContent = () => {
+  const { user, isAuthReady } = useAuth();
+  const [isSplashFinished, setIsSplashFinished] = useState<boolean>(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsSplashFinished(true);
+    }, SPLASH_DURATION);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!isSplashFinished || !isAuthReady) {
+    return <SplashScreen />;
   }
 
   return (
     <NavigationContainer>
-      <MainNavigator />
+      {user ? <MainNavigator /> : <AuthNavigator />}
     </NavigationContainer>
+  );
+};
+
+export const AppNavigator = () => {
+  return (
+    <AuthProvider>
+      <AppNavigationContent />
+    </AuthProvider>
   );
 };
